@@ -53,3 +53,5 @@ Where it needs improving:
    
    * Does not know how to process webm media, probably other types.
    
+   * Perl code itself could use refactor and cleanup, many examples 
+   of repeated code, run-on functions, excessive hard-coding, etc.
