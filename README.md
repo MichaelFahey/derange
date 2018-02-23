@@ -1,7 +1,7 @@
 # derange
 
 DeRange is a GUI utility which:
-   * Tracks files in a media library in an XML database 
+   * Tracks video media files in an XML database 
    * Normalizes and Compresses audio volume levels in video media files
    * stores user-defined tags, and creates tag-based XSPF playlists
    * plus a few other media file processing features.
