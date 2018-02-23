@@ -18,38 +18,38 @@ of error trapping.
 
 On the plus side:
 
-   Derange actually works, inherits the robustness of FFMPEG, and has 
+   * Derange actually works, inherits the robustness of FFMPEG, and has 
    successfully processed thoudands of media files so far.
    
-   Although load times will increase, DeRange can manage tens of thousands 
+   * Although load times will increase, DeRange can manage tens of thousands 
    of media files in a single library. 
    
-   Stores tag metadata externally in its own database of XML files, and can 
+   * Stores tag metadata externally in its own database of XML files, and can 
    build XSPF playlists from these tags, with both include and exclude tags
    allowed. 
    
-   Multiple sequential playlists can be built, with the number being user-
+   * Multiple sequential playlists can be built, with the number being user-
    specified per-playlist.
    
-   Playlist content is pseudo-randomized, but sequential files in a folder 
+   * Playlist content is pseudo-randomized, but sequential files in a folder 
    are preserved in order, so that they appear in order in playlists.
 
 Where it needs improving:
 
-   Will choke if the directories and config files that it expects are not 
+   * Chokes if the directories and config files that it expects are not 
    present.
    
-   Chokes on invalid paths in config.
+   * Chokes on invalid paths in config.
    
-   Does not know how to generate config files from scratch.
+   * Does not know how to generate config files from scratch.
 
-   Can not rename files.
+   * Can not rename files.
    
-   Can only manage one library root folder, would be a plus to switch  
+   * Can only manage one library root folder, would be a plus to switch  
    between multiple library root folders (video vs audio for example).
 
-   There is no reason why it should not be able to manage audio-only 
+   * There is no reason why it should not be able to manage audio-only 
    files, but it hasn't been set up.
    
-   Does not know how to process webm media, probably other types.
+   * Does not know how to process webm media, probably other types.
    
