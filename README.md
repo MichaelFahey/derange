@@ -1,12 +1,9 @@
 # derange
 
-GUI utility to Normalize and Compress audio in video media files, track and 
-tag video media, make XSPF playlists, and more.
-
-DeRange is software which tracks files in a media library, Normalizes and 
-Compresses audio volume levels, keeps an XML database of managed file which 
-also contains user-defined tags, and creates tag-based XSPF playlists, plus 
-a few other media file processing features.
+DeRange is a GUI utility which tracks files in a media library, Normalizes 
+and Compresses audio volume levels in video media files, keeps an XML 
+database of managed file which also contains user-defined tags, and creates 
+tag-based XSPF playlists, plus a few other media file processing features.
 
 DeRange V1 makes external calls to FFMPEG to do the actual crunching of the 
 media data. It also relies on a handful of common external GNU utilities 
