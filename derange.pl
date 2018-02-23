@@ -2,11 +2,17 @@
 
 ######################################################################
 # 
-# DeRange media file tool
-my $version = "0.20180201a";
+#                    DeRange Media Tool
+my $version =        "0.20180223a";
 #
-# author: Michael Hogan Fahey
-# date:   2-01-2018
+# Description:       DeRange is a GUI utility which tracks video 
+#                    media files, Normalizes and Compresses audio, 
+#                    manages tags, and creates tag-based XSPF 
+#                    playlists plus more.
+# Author:            Michael H Fahey
+# Author URI:        https://artisansitedesigns.com/asdpersons/michael-h-fahey/
+# License:           GPL3
+# Date:              02-23-2018
 # 
 ######################################################################
 
