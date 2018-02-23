@@ -1,7 +1,7 @@
 # derange
 
-Normalize and Compress audio in your media library, make XSPF playlists, 
-and more.
+GUI utility to Normalize and Compress audio in your media library, make 
+XSPF playlists, and more.
 
 DeRange is software which tracks files in a media library, Normalizes and 
 Compresses audio volume levels, keeps an XML database of managed file which 
