@@ -18,7 +18,7 @@ of error trapping.
 
 On the plus side:
 
-   * Derange actually works, inherits the robustness of FFMPEG, and has 
+   * DeRange actually works, inherits the robustness of FFMPEG, and has 
    successfully processed thoudands of media files so far.
    
    * Although load times will increase, DeRange can manage tens of thousands 
@@ -34,7 +34,7 @@ On the plus side:
    * Playlist content is pseudo-randomized, but sequential files in a folder 
    are preserved in order, so that they appear in order in playlists.
 
-Where it needs improving:
+Where DeRange needs improving:
 
    * Chokes if the directories and config files that it expects are not 
    present.
@@ -49,7 +49,7 @@ Where it needs improving:
    between multiple library root folders (video vs audio for example).
 
    * There is no reason why it should not be able to manage audio-only 
-   files, but it hasn't been set up.
+   files, but this hasn't been set up.
    
    * Does not know how to process webm media, probably other types.
    
