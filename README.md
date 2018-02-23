@@ -1,8 +1,6 @@
 # DeRange
 
-Author:      Michael H Fahey
 
-Author URI:  https://artisansitedesigns.com/asdpersons/michael-h-fahey/
 
 DeRange is a GUI utility which:
    * Tracks video media files in an XML database 
@@ -59,3 +57,7 @@ Where DeRange needs improving:
    
    * Perl code itself could use refactor and cleanup, many examples 
    of repeated code, run-on functions, excessive hard-coding, etc.
+   
+Author:      Michael H Fahey
+
+Author URI:  https://artisansitedesigns.com/asdpersons/michael-h-fahey/
