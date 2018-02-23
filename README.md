@@ -1,6 +1,7 @@
 # DeRange
 
 Author:      Michael H Fahey
+
 Author URI:  https://artisansitedesigns.com/asdpersons/michael-h-fahey/
 
 DeRange is a GUI utility which:
