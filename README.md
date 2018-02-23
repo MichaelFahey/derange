@@ -1,4 +1,4 @@
-# derange
+# DeRange
 
 DeRange is a GUI utility which:
    * Tracks video media files in an XML database 
