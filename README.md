@@ -9,9 +9,9 @@ DeRange is a GUI utility which:
 DeRange V1 makes external calls to FFMPEG to do the actual crunching of the 
 media data. It also relies on a handful of common external GNU utilities 
 usually already present on most linux machines. DeRange V1 runs only under 
-Linux only because it is based on  Perl TK, and the TK widget set is linux 
-only. A new port is in the pipeline, DeRange V2 is WX Widget-based and will 
-be Windows Compatible using a Citrus Perl executable.
+Linux because it is based on  Perl TK, and the TK widget set is linux only. 
+A new port is in the pipeline, DeRange V2 is WX Widget-based and will be 
+Windows Compatible using a Citrus Perl executable.
 
 Although functional, DeRange V1 is not very refined, and contains a minimum 
 of error trapping.
