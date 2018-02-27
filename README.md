@@ -21,7 +21,7 @@ of error trapping.
 On the plus side:
 
    * DeRange actually works, inherits the robustness of FFMPEG, and has 
-   successfully processed thoudands of media files so far.
+   successfully processed thousands of media files so far.
    
    * Although load times will increase, DeRange can manage tens of thousands 
    of media files in a single library. 
