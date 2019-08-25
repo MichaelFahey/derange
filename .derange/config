@@ -1,0 +1,13 @@
+; Config::Simple 4.58
+; Fri Aug 16 22:46:21 2019
+
+[derange]
+RenameFiles=Off
+WorkingDirectory=/video/
+DetectVol=On
+VBitrate=500k
+PlayListLocalRoot=/
+FixCache=On
+Geometry=2048x1041+0+0
+
+

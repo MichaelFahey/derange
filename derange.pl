@@ -2,17 +2,11 @@
 
 ######################################################################
 # 
-#                    DeRange Media Tool
-my $version =        "0.20180223a";
+# DeRange media file tool
+my $version = "0.28";
 #
-# Description:       DeRange is a GUI utility which tracks video 
-#                    media files, Normalizes and Compresses audio, 
-#                    manages tags, and creates tag-based XSPF 
-#                    playlists plus more.
-# Author:            Michael H Fahey
-# Author URI:        https://artisansitedesigns.com/asdpersons/michael-h-fahey/
-# License:           GPL3
-# Date:              02-23-2018
+# author: Michael Hogan Fahey
+# date:   07-05-2019
 # 
 ######################################################################
 
@@ -162,6 +156,8 @@ my $screenGeometry = $cfg->param("derange.Geometry");
 my $workingdirectory = $cfg->param("derange.WorkingDirectory");
 my $renamefiles = $cfg->param("derange.RenameFiles");
 my $fixcache = $cfg->param("derange.FixCache");
+my $detectvol = $cfg->param("derange.DetectVol");
+my $recode_vbitrate = $cfg->param("derange.VBitrate");
 my $localroot = $cfg->param("derange.PlayListLocalRoot");
 
 my $playlistname;
@@ -368,7 +364,21 @@ my $entTruncate = $canvLibraryButtons9-> Entry (
                                     -textvariable=> \$truncatelength,
                                     -background=>'white',
                                     -width=>15,
+                                     )-> pack (-side=>'left');
+
+my $entVBitrate = $canvLibraryButtons9-> Entry (
+                                    -textvariable=> \$recode_vbitrate,
+                                    -background=>'white',
+                                    -width=>15,
                                      )-> pack (-side=>'right');
+my $btnRecode = $canvLibraryButtons9->Button(-text=>"Recode",-width=>$btnwidth,-height=>$btnheight,
+                -anchor  =>"center",
+                -background=> 'white',
+                -foreground=> $btnfore,
+                -pady=>0,
+                -font=>$medFont,
+                        -command=>sub { processSelectedMedia("recode" ); }
+				 )->pack(-side=>'right');
 
 my $btnCrop = $canvLibraryButtons10->Button(-text=>"Crop",-width=>$btnwidth,-height=>$btnheight,
                 -anchor  =>"center",
@@ -700,6 +710,13 @@ my $cbxFixCache = $notepageSettings-> Checkbox ( -variable => \$fixcache,
                                                       -onvalue  => 'On',
                                                       -offvalue => 'Off')->pack(-side=>'left');
 
+my $lblDetectVol = $notepageSettings-> Label ( 
+                                     -text=>"Detect Volume",
+                                     )->pack (-side=>'left');
+my $entDetectVo = $notepageSettings-> Entry (
+                                    -textvariable=> \$detectvol,
+                                    -width=>100,
+                                     )-> pack (-side=>'left');
 
 
 
@@ -783,16 +800,17 @@ sub importSelected(){
         my $cachefilename = $cachedir . "/" . $bareMediaFile . ".data";
         $cachefilename =~ s/ /_/gsm;
 
-        # $statustext = "importing into library " .  $bareMediaFile;
+        $statustext = "importing into library " .  $bareMediaFile;
         $lblStatus->pack(-side => 'left',-anchor=>'w');
+        $mw->update();
 
         makeAndWriteXMLCacheFile ( $selMediaFile , $cachefilename );
 
         $percentdone = $percentdone + (100 / $numberofrows);
+        $mw->update();
 
         $lbxImport->selectionClear($_);
       }
-      $mw->update();
 
    }
    $btnStop->configure( -background=>$darkgray, -foreground=>$lightgray);
@@ -1569,6 +1587,86 @@ sub processSelectedMedia ()  {
 
           }  # end of if =~ normalize
 
+       # -----------------------------------------------------------------------------------
+       if ($processType =~ /recode/ ) {
+       # -----------------------------------------------------------------------------------
+
+            # move the original media file to a new filename
+            my $newmediafilename = $selMediaFile . ".sav.norecode" ;
+            my $cmdFileMove = $MV . " \"" .  $selMediaFile . "\" \"" .   $newmediafilename . "\"";
+            system ($cmdFileMove);
+
+          my $outputfile = prepareMediaFilename($bareMediaFile,"mp4");
+          my $outputpath = $barePath . $outputfile;
+
+             my $cmdffmpeg = $NICE . " " . $FFMPEG . " -i \"" .  $newmediafilename  . "\" " .
+                                   " -acodec aac -vcodec nvenc_h264 " .
+                                   " -b:v " . $recode_vbitrate . " " .
+                                   " \"" . $outputpath . "\"";
+
+             $statustext = "recoding " .  $bareMediaFile;
+             $mw->update();
+             printf $logfile $cmdffmpeg . "\n";
+             system ($cmdffmpeg);
+
+             # figure out the name of, and delete, the old cache file, if it exists
+             # original may have already been deleted (upstream)
+          	 my $cachefilename = $cachedir . "/" .  $bareMediaFile . ".data";
+             $cachefilename =~ s/ /_/gsm;
+             if (-e $cachefilename) {
+                my $cmdrmcache = $RM . " \"" . $cachefilename . "\"";
+                system ( $cmdrmcache);
+             }
+
+             # generate new cache filename
+	         $cachefilename = $cachedir . "/" . $outputfile . ".data";
+             $cachefilename =~ s/ /_/gsm;
+
+             $statustext = "re-analyzing " .  $outputfile;
+             $mw->update();
+
+              ( $thiscontainer,
+                $thisvcodec, 
+                $thisvbitrate,
+                $thisacodec,
+                $thisabitrate,
+                $thismeanvol,
+                $thismaxvol,
+                $timestamp,
+                $filesize )
+              = detectMediaProperties ($outputpath );
+
+                writeXMLCacheFile ( 
+                                      $cachefilename,
+                                      $outputpath,
+                                      $xml_version,
+                                      $thisvcodec , 
+                                      $thisvbitrate, 
+                                      $thisacodec , 
+                                      $thisabitrate, 
+                                      $thiscontainer, 
+                                      $thismaxvol, 
+                                      $thismeanvol, 
+                                      $filesize, 
+                                      $timestamp,
+                                      $compressed,
+                                      $normalized,
+                                      $tags,
+                                      $rating,
+                                      $weight );
+
+              # remember the new file path so that other downstream
+              # functions can remember it
+              $selMediaFile = $outputpath;
+              my ($bareMediaFile, $barePath) = fileparse ($selMediaFile);
+              # my $outputfile = prepareMediaFilename($bareMediaFile,$thiscontainer);
+
+             $statustext = "" .  $outputfile;
+             $mw->update();
+
+
+       }  # end of if ~= recode
+
 
        # -----------------------------------------------------------------------------------
        if ($processType =~ /crop/ ) {
@@ -1784,6 +1882,7 @@ sub loadLibrary (){
       foreach (@dirListing) {
 
          $percentdone = $percentdone + (100 / $numberoffiles);
+         $mw->update();
 
 	     my $cachefilename=$_;
 	     chomp($cachefilename);
@@ -1868,6 +1967,7 @@ sub loadLibrary (){
     foreach (@dirListing) {
 
          $percentdone = $percentdone + (100 / $numberoffiles);
+         $mw->update();
 
 	     my $cachefilename=$_;
 	     chomp($cachefilename);
@@ -1999,9 +2099,8 @@ sub loadImportDirectory(){
 
 	  
 	# get directory listing 
-    $statustext = "Getting Directory Listing";
 	# my @dirListing=`$LS "$workingdirectory" | $SORT`;
-	my @dirListing=`$FIND -H "$workingdirectory" -type f | $SORT ` ;
+	my @dirListing=`$FIND "$workingdirectory" -type f | $SORT ` ;
     # empty directory listing
 	if (@dirListing==0) {
 	     return 1;
@@ -2016,20 +2115,54 @@ sub loadImportDirectory(){
 
 
     # iterate through directory results 
-    $statustext = "Iterating through Directory Results";
-    foreach (@dirListing) {
+    foreach my $mediafile (@dirListing) {
 
       if ($running){
-
          # input filepath, trim off any returns at the end
-	     my $mediafile=$_;
-	     chomp($mediafile);
+	       chomp($mediafile);
+         loadMediaFile( $mediafile );
+      }
 
-          my ($bareMediaFile, $barePath) = fileparse ($mediafile);
+			$percentdone = $percentdone + (100 / $numberoffiles);
+			$statustext = "loading " . $mediafile;
+			$mw->update();
 
-          unless (-e $barePath . "/.derange.ignore" ) {
+  }
 
-		 my $isAMediaFile=0;
+  $percentdone=0;
+  $mw->Unbusy();
+  $mw->update();
+
+  $statustext = "Ready";
+  $lblStatus->pack(-side => 'left',-anchor=>'w');
+
+}
+
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------------
+sub loadMediaFile () {
+# ----------------------------------------------------------------------------------------------------
+   
+   my ($mediafile) = @_;
+
+   # if the file ".derange.ignore" exists anywhere in the media
+   # path, return to skip the
+   my ($bareMediaFile, $barePath) = fileparse ($mediafile);
+   my (@baredirectories) = split m%/%, $barePath;
+   my $buildpath = "/";
+   foreach my $dirpart (@baredirectories) {
+     $buildpath = $buildpath . $dirpart . "/";
+     if (-e $buildpath . ".derange.ignore" ) {
+        return;
+     }
+   }
+
+
+	 my $isAMediaFile=0;
 
 			 if ($mediafile =~ /.webm/) { $isAMediaFile=1; }
 			 if ($mediafile =~ /.WEBM/) { $isAMediaFile=1; }
@@ -2041,10 +2174,6 @@ sub loadImportDirectory(){
 			 if ($mediafile =~ /.AVI/) { $isAMediaFile=1; }
 			 if ($mediafile =~ /.flv/) { $isAMediaFile=1; }
 			 if ($mediafile =~ /.FLV/) { $isAMediaFile=1; }
-
-			 $percentdone = $percentdone + (100 / $numberoffiles);
-			 # $statustext = "loading " . $mediafile;
-			 $mw->update();
 
 
 			 if ($isAMediaFile ==1) {
@@ -2065,22 +2194,11 @@ sub loadImportDirectory(){
 			     }
 
 			 } else {
-			      # $lbxImportSkip->insert ('end', [ $mediafile  ]);
+			      $lbxImportSkip->insert ('end', [ $mediafile  ]);
 			 }
 
-		  }
-         }
-
-  }
-
-  $percentdone=0;
-  $mw->Unbusy();
-  $mw->update();
-
-  $statustext = "Ready";
-  $lblStatus->pack(-side => 'left',-anchor=>'w');
-
 }
+
 
 
 
@@ -2104,7 +2222,7 @@ sub readXMLCacheFileImport () {
                my $thisfilesize=  $xmlreaddata->{filesize};
                my $thistimestamp=  $xmlreaddata->{timestamp};
 
-               # $lbxImported->insert ('end', [ $thisfilename ] ) ;
+               $lbxImported->insert ('end', [ $thisfilename ] ) ;
 
 }
 
@@ -2115,9 +2233,13 @@ sub detectMediaProperties () {
 # ----------------------------------------------------------------------------------------------------
 
                my $thisMediaFile=shift;
+               my $detectCommand;
     
-				#my $detectCommand = $FFPROBE . " \"" . $thisMediaFile . "\" > " . $tempfile . " 2>&1";
-				my $detectCommand = $NICE . " " . $FFMPEG . " -i \"" . $thisMediaFile . "\" -af \"volumedetect\" -f null /dev/null > " . $tempfile . " 2>&1";
+            if ($detectvol eq 'On') {
+               $detectCommand = $NICE . " " . $FFMPEG . " -i \"" . $thisMediaFile . "\" -af \"volumedetect\" -f null /dev/null > " . $tempfile . " 2>&1";
+            } else {
+               $detectCommand = $NICE . " " . $FFPROBE . " -i \"" . $thisMediaFile . "\" > " . $tempfile . " 2>&1";
+            }
 
 				system ($detectCommand);
             print $logfile $detectCommand . "\n";
@@ -2156,13 +2278,18 @@ sub detectMediaProperties () {
                 $audiostream[0] =~ /(\S+)\s*kb\/s\s*/;
                 my $audiobitrate=$1 ;
 
+                my $meanvol = '';
+                my $maxvol =  '';  
+
+            if ($detectvol eq 'On') {
                 my $meanvolstr = `$GREP -a mean_volume $tempfile`;
                 # -2 is second to last in array, -1 is last 
-                my $meanvol = ( split ' ', $meanvolstr )[-2];
+                $meanvol = ( split ' ', $meanvolstr )[-2];
 
                 my $maxvolstr = `$GREP -a max_volume $tempfile`;
                 # -2 is second to last in array, -1 is last 
-                my $maxvol = ( split ' ', $maxvolstr )[-2];  
+                $maxvol = ( split ' ', $maxvolstr )[-2];  
+            }
 
                 # get the media file timestamp
                 my $timestamp = (stat($thisMediaFile))[9];
@@ -2188,9 +2315,14 @@ sub makeAndWriteXMLCacheFile () {
 
                my $thisMediaFile=shift;
                my $thisCacheFile=shift;
+
+            my $detectCommand;
     
-				#my $detectCommand = $FFPROBE . " \"" . $thisMediaFile . "\" > " . $tempfile . " 2>&1";
-				my $detectCommand = $NICE . " " . $FFMPEG . " -i \"" . $thisMediaFile . "\" -af \"volumedetect\" -f null /dev/null > " . $tempfile . " 2>&1";
+            if ($detectvol eq 'On') {
+               $detectCommand = $NICE . " " . $FFMPEG . " -i \"" . $thisMediaFile . "\" -af \"volumedetect\" -f null /dev/null > " . $tempfile . " 2>&1";
+            } else {
+               $detectCommand = $NICE . " " . $FFPROBE . " -i \"" . $thisMediaFile . "\"  > " . $tempfile . " 2>&1";
+            }
 
 				system ($detectCommand);
             print $logfile $detectCommand . "\n";
@@ -2229,13 +2361,18 @@ sub makeAndWriteXMLCacheFile () {
                 $audiostream[0] =~ /(\S+)\s*kb\/s\s*/;
                 my $audiobitrate=$1 ;
 
+                my $meanvol = '';
+                my $maxvol =  '';  
+
+            if ($detectvol eq 'On') {
                 my $meanvolstr = `$GREP -a mean_volume $tempfile`;
                 # -2 is second to last in array, -1 is last 
-                my $meanvol = ( split ' ', $meanvolstr )[-2];
+                $meanvol = ( split ' ', $meanvolstr )[-2];
 
                 my $maxvolstr = `$GREP -a max_volume $tempfile`;
                 # -2 is second to last in array, -1 is last 
-                my $maxvol = ( split ' ', $maxvolstr )[-2];  
+                $maxvol = ( split ' ', $maxvolstr )[-2];  
+            }
 
                 # get the media file timestamp
                 my $timestamp = (stat($thisMediaFile))[9];
@@ -2272,6 +2409,8 @@ sub saveAndExit(){
    # save working directory to config file
 
    $cfg->param("derange.FixCache", $fixcache );
+   $cfg->param("derange.DetectVol", $detectvol );
+   $cfg->param("derange.VBitrate", $recode_vbitrate );
    $cfg->param("derange.Geometry", $mw->geometry() );
    $cfg->param("derange.PlayListLocalRoot", $localroot);
    $cfg->param("derange.RenameFiles", $renamefiles );
